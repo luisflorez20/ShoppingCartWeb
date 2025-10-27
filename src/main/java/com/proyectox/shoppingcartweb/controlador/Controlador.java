@@ -1,9 +1,9 @@
 package com.proyectox.shoppingcartweb.controlador;
 
 
-import com.proyectox.shoppingcartweb.dao.ClienteDAO;
+import com.proyectox.shoppingcartweb.dao.ClienteDAO; // Importar CienteDAO
 import com.proyectox.shoppingcartweb.dao.ProductoDAO;
-import com.proyectox.shoppingcartweb.modelo.Cliente;
+import com.proyectox.shoppingcartweb.modelo.Cliente; // Importar Cliente
 import com.proyectox.shoppingcartweb.modelo.ItemCarrito;
 import com.proyectox.shoppingcartweb.modelo.Producto;
 
@@ -44,10 +44,10 @@ public class Controlador extends HttpServlet {
                 logout(request, response);
                 break;
             case "verLogin":
-                request.getRequestDispatcher("login.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/login.jsp").forward(request, response);
                 break;
             case "verRegistro":
-                request.getRequestDispatcher("registro.jsp").forward(request, response);
+                request.getRequestDispatcher("/WEB-INF/registro.jsp").forward(request, response);
                 break;
 
             // Acciones de Carrito
@@ -83,7 +83,7 @@ public class Controlador extends HttpServlet {
             listarProductos(request, response);
         } else {
             // Si no es válido, lo devolvemos a la página de login
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            request.getRequestDispatcher("WEB-INF/login.jsp").forward(request, response);
         }
     }
 
@@ -98,7 +98,7 @@ public class Controlador extends HttpServlet {
         clienteDAO.registrar(cliente);
 
         // Una vez registrado, lo mandamos a la página de login para que inicie sesión
-        request.getRequestDispatcher("login.jsp").forward(request, response);
+        request.getRequestDispatcher("WEB-INF/login.jsp").forward(request, response);
     }
 
     private void logout(HttpServletRequest request, HttpServletResponse response)

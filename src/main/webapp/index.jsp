@@ -15,10 +15,28 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Catálogo de Productos</h1>
-        <%-- Este enlace lleva a la acción "verCarrito" en el Controlador --%>
-        <a href="Controlador?accion=verCarrito" class="btn btn-primary">
-            Ver Carrito (${not empty sessionScope.carrito ? sessionScope.carrito.size() : 0} items)
-        </a>
+
+        <div>
+            <a href="Controlador?accion=verCarrito" class="btn btn-primary mr-2">
+                Ver Carrito (${not empty sessionScope.carrito ? sessionScope.carrito.size() : 0} items)
+            </a>
+
+            <%-- Usamos JSTL para mostrar contenido condicionalmente --%>
+            <c:choose>
+                <c:when test="${not empty sessionScope.clienteLogueado}">
+                    <%-- Si hay un cliente logueado --%>
+                    <span class="navbar-text mr-3">
+                    Bienvenido, ${sessionScope.clienteLogueado.nombres}
+                </span>
+                    <a href="Controlador?accion=logout" class="btn btn-danger">Cerrar Sesión</a>
+                </c:when>
+                <c:otherwise>
+                    <%-- Si no hay nadie logueado --%>
+                    <a href="Controlador?accion=verLogin" class="btn btn-success">Iniciar Sesión</a>
+                    <a href="Controlador?accion=verRegistro" class="btn btn-info ml-2">Registrarse</a>
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
 
     <div class="row">
