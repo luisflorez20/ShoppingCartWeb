@@ -4,9 +4,10 @@ package com.proyectox.shoppingcartweb.controlador;
 import com.proyectox.shoppingcartweb.dao.ClienteDAO; // Importar CienteDAO
 import com.proyectox.shoppingcartweb.dao.ProductoDAO;
 import com.proyectox.shoppingcartweb.modelo.Cliente; // Importar Cliente
-import com.proyectox.shoppingcartweb.modelo.ItemCarrito;
 import com.proyectox.shoppingcartweb.modelo.Producto;
 
+import com.proyectox.shoppingcartweb.servicio.CarritoService;
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,7 +17,6 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet("/Controlador")
@@ -24,6 +24,15 @@ public class Controlador extends HttpServlet {
 
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final ClienteDAO clienteDAO = new ClienteDAO(); // Añadir instancia de ClienteDAO
+    private CarritoService carritoService; // Declaramos la instancia del servicio
+
+    // Método init() para inicializar el servicio
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        // Creamos el servicio pasándole el DAO que necesita
+        this.carritoService = new CarritoService(productoDAO);
+    }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -74,6 +83,68 @@ public class Controlador extends HttpServlet {
         }
     }
 
+    // --- Métodos del Carrito Refactorizados ---
+    private void agregarAlCarrito(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int idProducto = Integer.parseInt(request.getParameter("id"));
+        HttpSession session = request.getSession();
+
+        // Llama al servicio para hacer la lógica
+        carritoService.agregarProducto(session, idProducto);
+
+        // El controlador sigue manejando la redirección
+        response.sendRedirect(request.getContextPath() + "/Controlador?accion=listar");
+    }
+
+    // Nuevo: Método para manejar la petición AJAX de agregar al carrito
+    private void agregarAlCarritoAjax(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int idProducto = Integer.parseInt(request.getParameter("id"));
+        HttpSession session = request.getSession();
+
+        // Llama al servicio para hacer la lógica
+
+        carritoService.agregarProducto(session, idProducto);
+
+        // Obtiene el conteo de servicio
+        int nuevoConteo = carritoService.getConteoItems(session);
+
+        // En lugar de redirigir, respondemos con el nuevo tamaño del carrito
+        // El controlador sigue manejando la respuesta AJAX
+        response.setContentType("text/plain"); // Indicamos que la respuesta es texto
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        out.print(nuevoConteo); // Enviamos solo el numero de items
+        out.flush(); // Aseguramos que la respuesta se envíe
+    }
+
+    private void eliminarDelCarrito(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int idProducto = Integer.parseInt(request.getParameter("id"));
+        HttpSession session = request.getSession();
+
+        // Llama al servicio para hacer la lógica
+        carritoService.eliminarProducto(session, idProducto);
+
+        // El controlador sigue manejando la redirección
+        response.sendRedirect(request.getContextPath() + "/Controlador?accion=verCarrito");
+    }
+
+    private void actualizarCantidad(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int idProducto = Integer.parseInt(request.getParameter("id"));
+        int cantidad = Integer.parseInt(request.getParameter("cantidad"));
+        HttpSession session = request.getSession();
+
+        // Llama al servicio para hacer la lógica
+        carritoService.actualizarCantidad(session, idProducto, cantidad);
+
+        // El controlador sigue manejando la redirección
+        response.sendRedirect(request.getContextPath() + "/Controlador?accion=verCarrito");
+    }
+
+
+
     private void login(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
@@ -121,111 +192,7 @@ public class Controlador extends HttpServlet {
         request.getRequestDispatcher("index.jsp").forward(request, response);
     }
 
-    private void agregarAlCarrito(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int idProducto = Integer.parseInt(request.getParameter("id"));
-        Producto producto = productoDAO.obtenerPorId(idProducto);
 
-        HttpSession session = request.getSession();
-        List<ItemCarrito> carrito = (List<ItemCarrito>) session.getAttribute("carrito");
-
-        if (carrito == null) {
-            carrito = new ArrayList<>();
-        }
-
-        boolean existe = false;
-        for (ItemCarrito item : carrito) {
-            if (item.getProducto().getId() == idProducto) {
-                item.setCantidad(item.getCantidad() + 1);
-                existe = true;
-                break;
-            }
-        }
-
-        if (!existe && producto != null) { // Asegurarse que el producto no sea nullo
-            carrito.add(new ItemCarrito(producto, 1));
-        }
-
-        session.setAttribute("carrito", carrito);
-        //Redirige como antes
-        response.sendRedirect(request.getContextPath() + "/Controlador?accion=listar");
-    }
-
-    // Nuevo: Método para manejar la petición AJAX de agregar al carrito
-    private void agregarAlCarritoAjax(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int idProducto = Integer.parseInt(request.getParameter("id"));
-        Producto producto = productoDAO.obtenerPorId(idProducto);
-
-        HttpSession session = request.getSession();
-        List<ItemCarrito> carrito = (List<ItemCarrito>) session.getAttribute("carrito");
-
-        if (carrito == null) {
-            carrito = new ArrayList<>();
-        }
-
-        boolean existe = false;
-        for (ItemCarrito item : carrito) {
-            if (item.getProducto().getId() == idProducto) {
-                item.setCantidad(item.getCantidad() + 1);
-                existe = true;
-                break;
-            }
-        }
-
-        if (!existe && producto != null) { // Asegurarse que el producto no sea null
-            carrito.add(new ItemCarrito(producto, 1));
-        }
-
-        session.setAttribute("carrito", carrito);
-
-        // En lugar de redirigir, respondemos con el nuevo tamaño del carrito
-        response.setContentType("text/plain"); // Indicamos que la respuesta es texto
-        response.setCharacterEncoding("UTF-8");
-        PrintWriter out = response.getWriter();
-        out.print(carrito.size()); // Enviamos solo el numero de items
-        out.flush(); // Aseguramos que la respuesta se envíe
-    }
-
-
-    private void eliminarDelCarrito(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int idProducto = Integer.parseInt(request.getParameter("id"));
-        HttpSession session = request.getSession();
-        List<ItemCarrito> carrito = (List<ItemCarrito>) session.getAttribute("carrito");
-
-        if (carrito != null) {
-            carrito.removeIf(item -> item.getProducto().getId() == idProducto);
-        }
-
-        response.sendRedirect(request.getContextPath() + "/Controlador?accion=verCarrito");
-    }
-
-    private void actualizarCantidad(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        int idProducto = Integer.parseInt(request.getParameter("id"));
-        int cantidad = Integer.parseInt(request.getParameter("cantidad"));
-
-        HttpSession session = request.getSession();
-        List<ItemCarrito> carrito = (List<ItemCarrito>) session.getAttribute("carrito");
-
-        if (cantidad <= 0) {
-            if (carrito != null) {
-                carrito.removeIf(item -> item.getProducto().getId() == idProducto);
-            }
-        } else {
-            if (carrito != null) {
-                for (ItemCarrito item : carrito) {
-                    if (item.getProducto().getId() == idProducto) {
-                        item.setCantidad(cantidad);
-                        break;
-                    }
-                }
-            }
-        }
-
-        response.sendRedirect(request.getContextPath() + "/Controlador?accion=verCarrito");
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
