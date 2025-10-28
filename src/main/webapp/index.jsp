@@ -63,5 +63,50 @@
     </div>
 </div>
 
+<script>
+    // Seleccionamos todos los botones "Agregar al carrito"
+    const botonesAgregar = document.querySelectorAll('.btnAgregarCarrito');
+    // Seleccionamos el botón "Ver Carrito" por su ID
+    const btnVerCarrito = document.getElementById('btnVerCarrito');
+
+    // Añadimos un listener a cada botón "Agregar"
+    botonesAgregar.forEach(boton => {
+        boton.addEventListener('click', function(event) {
+            // Obtenemos el ID del producto del atributo data-id
+            const idProducto = this.dataset.id;
+
+            // Creamos los datos que enviaremos al servidor
+            const formData = new FormData();
+            formData.append('accion', 'agregarAjax'); // Usaremos una nueva acción para AJAX
+            formData.append('id', idProducto);
+
+            // Usamos la API fetch para enviar la petición POST
+            fetch('Controlador', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    // Verificamos si la respuesta fue exitosa
+                    if (!response.ok) {
+                        throw new Error('Error en la petición AJAX');
+                    }
+                    // Convertimos la respuesta (que esperamos sea el nuevo conteo) a texto
+                    return response.text();
+                })
+                .then(nuevoConteo => {
+                    // Actualizamos el texto del botón "Ver Carrito"
+                    btnVerCarrito.textContent = `Ver Carrito (${nuevoConteo} items)`;
+                    // Opcional: Mostrar una pequeña notificación visual al usuario
+                    console.log(`Producto ${idProducto} agregado. Nuevo conteo: ${nuevoConteo}`);
+                    alert(`Producto agregado. Total en carrito: ${nuevoConteo}`); // Simple alerta
+                })
+                .catch(error => {
+                    console.error('Error al agregar producto:', error);
+                    alert('Hubo un error al agregar el producto al carrito.');
+                });
+        });
+    });
+</script>
+
 </body>
 </html>

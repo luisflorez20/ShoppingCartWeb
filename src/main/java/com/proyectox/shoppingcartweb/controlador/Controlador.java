@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +54,10 @@ public class Controlador extends HttpServlet {
             // Acciones de Carrito
             case "agregar":
                 agregarAlCarrito(request, response);
+                break;
+            // Caso para la accion Ajax
+            case "agregarAjax":
+                agregarAlCarritoAjax(request, response);
                 break;
             case "eliminar":
                 eliminarDelCarrito(request, response);
@@ -108,7 +113,6 @@ public class Controlador extends HttpServlet {
         listarProductos(request, response);
     }
 
-    // ... (El resto de los métodos para el carrito y listar productos permanecen igual)
 
     private void listarProductos(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -138,13 +142,51 @@ public class Controlador extends HttpServlet {
             }
         }
 
-        if (!existe) {
+        if (!existe && producto != null) { // Asegurarse que el producto no sea nullo
             carrito.add(new ItemCarrito(producto, 1));
         }
 
         session.setAttribute("carrito", carrito);
+        //Redirige como antes
         response.sendRedirect(request.getContextPath() + "/Controlador?accion=listar");
     }
+
+    // Nuevo: Método para manejar la petición AJAX de agregar al carrito
+    private void agregarAlCarritoAjax(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int idProducto = Integer.parseInt(request.getParameter("id"));
+        Producto producto = productoDAO.obtenerPorId(idProducto);
+
+        HttpSession session = request.getSession();
+        List<ItemCarrito> carrito = (List<ItemCarrito>) session.getAttribute("carrito");
+
+        if (carrito == null) {
+            carrito = new ArrayList<>();
+        }
+
+        boolean existe = false;
+        for (ItemCarrito item : carrito) {
+            if (item.getProducto().getId() == idProducto) {
+                item.setCantidad(item.getCantidad() + 1);
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe && producto != null) { // Asegurarse que el producto no sea null
+            carrito.add(new ItemCarrito(producto, 1));
+        }
+
+        session.setAttribute("carrito", carrito);
+
+        // En lugar de redirigir, respondemos con el nuevo tamaño del carrito
+        response.setContentType("text/plain"); // Indicamos que la respuesta es texto
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        out.print(carrito.size()); // Enviamos solo el numero de items
+        out.flush(); // Aseguramos que la respuesta se envíe
+    }
+
 
     private void eliminarDelCarrito(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
