@@ -17,9 +17,10 @@
         <h1>Catálogo de Productos</h1>
 
         <div>
-            <a href="Controlador?accion=verCarrito" class="btn btn-primary mr-2">
+            <a id="btnVerCarrito" href="Controlador?accion=verCarrito" class="btn btn-primary mr-2">
                 Ver Carrito (${not empty sessionScope.carrito ? sessionScope.carrito.size() : 0} items)
             </a>
+
 
             <%-- Usamos JSTL para mostrar contenido condicionalmente --%>
             <c:choose>
@@ -55,7 +56,7 @@
                             <fmt:formatNumber value="${producto.precio}" type="currency"/>
                         </p>
                             <%-- Este es el botón clave: llama al Controlador con la acción "agregar" y el ID del producto --%>
-                        <a href="Controlador?accion=agregar&id=${producto.id}" class="btn btn-success">Agregar al carrito</a>
+                        <button class="btn btn-success btnAgregarCarrito" data-id="${producto.id}">Agregar al carrito</button>
                     </div>
                 </div>
             </div>

@@ -3,7 +3,7 @@ package com.proyectox.shoppingcartweb.dao;
 import com.proyectox.shoppingcartweb.modelo.Carrito;
 import com.proyectox.shoppingcartweb.modelo.ItemCarrito; // Necesitamos ItemCarrito pra la info completa
 import com.proyectox.shoppingcartweb.modelo.Producto; // Necesitamos Producto para construir ItemCarrito
-import org.postgresql.core.ConnectionFactory;
+
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,6 +15,7 @@ import java.util.List;
 public class CarritoDAO {
 
     private final ProductoDAO productoDAO; // Necesitamos acceso a los datos de producto
+   
     public CarritoDAO(ProductoDAO productoDAO) {
         this.productoDAO = productoDAO;
     }
@@ -66,8 +67,8 @@ public class CarritoDAO {
     public List<ItemCarrito> obtenerDetallesPorCarritoId(int idCarrito) {
         List<ItemCarrito> items = new ArrayList<>();
         // Unimos detalle_carrito con producto para obtener toda la info necesaria
-        String sql = "SELECT dc.idproducto, dc.cantidad, p.nombre, p.descripcion, p.precio, p.imagen" +
-                     "FROM detalle_carrito dc JOIN producto p ON dc.idproducto = p.idproducto" +
+        String sql = "SELECT dc.idproducto, dc.cantidad, p.nombre, p.descripcion, p.precio, p.imagen " +
+                     "FROM detalle_carrito dc JOIN producto p ON dc.idproducto = p.idproducto " +
                      "WHERE dc.idcarrito = ?";
 
         try (Connection conn = Conexion.getConexion();
@@ -104,7 +105,7 @@ public class CarritoDAO {
      */
     public void agregarOActualizarItem(int idCarrito, int idProducto, int cantidadAAgregar) {
         // SQL específico de PostgreSQL: Intenta insertar, si ya existe (por la UNIQUE constraint), actualiza.
-        String sql = "INSERT INTO detalle_carrito (idcarrito, idproducto, cantidad) VALUES (?, ?, ?)" +
+        String sql = "INSERT INTO detalle_carrito (idcarrito, idproducto, cantidad) VALUES (?, ?, ?) " +
                 "ON CONFLICT (idcarrito, idproducto) DO UPDATE SET cantidad = detalle_carrito.cantidad + EXCLUDED.cantidad";
 
         try (Connection conn = Conexion.getConexion();
@@ -136,7 +137,7 @@ public class CarritoDAO {
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, nuevaCantidad);
                 stmt.setInt(2, idCarrito);
-                stmt.setInt(2, idProducto);
+                stmt.setInt(3, idProducto);
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();

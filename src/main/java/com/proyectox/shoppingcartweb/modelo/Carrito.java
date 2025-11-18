@@ -7,7 +7,7 @@ public class Carrito {
     private int idCarrito;
     private int idCliente;
     private Timestamp fechaCreacion;
-    // Podríamos añadir aquí una lista de DetalleCarrito si quisiéramos cargarlo todo junto,
+    // Podríamos añadir aquí una lista de Detalle Carrito si quisiéramos cargarlo todo junto,
     // pero por ahora lo mantendremos simple y manejaremos los detalles por separado.
 
     public  Carrito() {
