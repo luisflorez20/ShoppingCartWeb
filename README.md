@@ -1,4 +1,4 @@
-# 🛒 ShoppingCartWeb
+# 🛒 ShoppingCartWeb - E-Commerce Web Application
 
 <div align="center">
 
